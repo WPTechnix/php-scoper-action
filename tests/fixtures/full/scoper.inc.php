@@ -3,7 +3,7 @@ return [
     'prefix' => 'PhpScoperActionTest',
     'finders' => [],
     'patchers' => [],
-    'exclude_namespaces' => [],
-    'exclude_functions' => [],
-    'exclude_constants' => [],
+    'exclude-namespaces' => [],
+    'exclude-functions' => [],
+    'exclude-constants' => [],
 ];

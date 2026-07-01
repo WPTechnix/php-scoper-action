@@ -20,3 +20,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Two test fixtures: basic (standalone) and full (with external dependency symfony/polyfill-php80)
 - Integration test workflow covering PHP 8.1, 8.2, and 8.3
 - Commit linting workflow using commitlint
+
+### Fixed
+- Test fixture config keys use kebab-case to match php-scoper 0.18 configuration format
