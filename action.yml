@@ -111,9 +111,8 @@ runs:
           --force
         echo "✓ PHP-Scoper completed successfully."
 
-        cd "${{ inputs.output-dir }}" || { echo "::error::Output directory '${{ inputs.output-dir }}' not found after scoping"; exit 1; }
-        SCOPED_PATH="$(pwd -P)"
-        FILE_COUNT=$(find "${{ inputs.output-dir }}" -type f -name '*.php' | wc -l)
+        SCOPED_PATH="$(cd "${{ inputs.output-dir }}" && pwd -P)" || { echo "::error::Output directory '${{ inputs.output-dir }}' not found after scoping"; exit 1; }
+        FILE_COUNT=$(find "$SCOPED_PATH" -type f -name '*.php' | wc -l)
         echo "output-path=${SCOPED_PATH}" >> $GITHUB_OUTPUT
         echo "scoped-files=${FILE_COUNT}" >> $GITHUB_OUTPUT
 
