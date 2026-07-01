@@ -1,4 +1,4 @@
-name: "PHP-Scoper Action"
+name: "PHP Scoper Action"
 description: "Scope PHP dependencies with humbug/php-scoper"
 author: "WPTechnix"
 branding:
