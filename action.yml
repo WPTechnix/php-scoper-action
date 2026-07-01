@@ -81,7 +81,7 @@ runs:
 
     - name: Composer install
       if: ${{ inputs.composer-install == 'true' }}
-      uses: ramsey/composer-install@v3
+      uses: ramsey/composer-install@v4
       with:
         working-directory: ${{ inputs.working-directory }}
         composer-options: ${{ inputs.composer-args }}
