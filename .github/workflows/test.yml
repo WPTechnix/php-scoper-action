@@ -1,0 +1,56 @@
+name: Test
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  basic:
+    name: Basic integration (PHP ${{ matrix.php-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php-version: ["8.1", "8.2", "8.3"]
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Run action on basic fixture
+        id: scoper
+        uses: ./
+        with:
+          php-version: ${{ matrix.php-version }}
+          working-directory: tests/fixtures/basic
+
+      - name: Verify outputs
+        env:
+          OUTPUT_PATH: ${{ steps.scoper.outputs.output-path }}
+          SCOPED_FILES: ${{ steps.scoper.outputs.scoped-files }}
+        run: |
+          echo "Output path: $OUTPUT_PATH"
+          echo "Scoped files: $SCOPED_FILES"
+          test -d "$OUTPUT_PATH" || { echo "::error::Output directory missing"; exit 1; }
+          [ "$SCOPED_FILES" -gt 0 ] || { echo "::error::No PHP files were scoped"; exit 1; }
+          grep -r 'PhpScoperActionTest' "$OUTPUT_PATH" || { echo "::error::Prefix was not applied to scoped files"; exit 1; }
+
+  full:
+    name: Full integration test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Run action on full fixture
+        id: scoper
+        uses: ./
+        with:
+          working-directory: tests/fixtures/full
+
+      - name: Verify outputs
+        env:
+          OUTPUT_PATH: ${{ steps.scoper.outputs.output-path }}
+          SCOPED_FILES: ${{ steps.scoper.outputs.scoped-files }}
+        run: |
+          echo "Output path: $OUTPUT_PATH"
+          echo "Scoped files: $SCOPED_FILES"
+          test -d "$OUTPUT_PATH" || { echo "::error::Output directory missing"; exit 1; }
+          [ "$SCOPED_FILES" -gt 0 ] || { echo "::error::No PHP files were scoped"; exit 1; }
+          grep -r 'PhpScoperActionTest' "$OUTPUT_PATH" || { echo "::error::Prefix was not applied to scoped files"; exit 1; }

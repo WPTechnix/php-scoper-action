@@ -1,0 +1,9 @@
+{
+    "name": "php-scoper-action/test-basic",
+    "description": "Basic test fixture for PHP-Scoper Action integration tests",
+    "autoload": {
+        "psr-4": {
+            "TestApp\\": "src/"
+        }
+    }
+}
