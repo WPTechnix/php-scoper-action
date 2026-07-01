@@ -1,0 +1,120 @@
+name: "PHP-Scoper Action"
+description: "Scope PHP dependencies with humbug/php-scoper"
+author: "WPTechnix"
+branding:
+  icon: "box"
+  color: "purple"
+
+inputs:
+  php-version:
+    description: "PHP version (e.g. 8.2, 8.3)"
+    required: false
+    default: "8.2"
+  scoper-version:
+    description: "PHP-Scoper version (e.g. 0.18.7, ~0.18.0, dev-main)"
+    required: false
+    default: "~0.18.0"
+  scoper-config:
+    description: "Path to scoper.inc.php (relative to working-directory, or absolute)"
+    required: false
+    default: "./scoper.inc.php"
+  working-directory:
+    description: "Working directory"
+    required: false
+    default: "."
+  output-dir:
+    description: "Output directory for scoped build (relative to working-directory, or absolute)"
+    required: false
+    default: "scoped-build"
+  composer-install:
+    description: "Run composer install before scoping (true/false)"
+    required: false
+    default: "true"
+  composer-args:
+    description: "Extra arguments for composer install"
+    required: false
+    default: "--no-dev --prefer-dist --optimize-autoloader"
+
+outputs:
+  output-path:
+    description: "Absolute path to scoped build"
+    value: ${{ steps.scoper.outputs.output-path }}
+  scoped-files:
+    description: "Number of PHP files in scoped build"
+    value: ${{ steps.scoper.outputs.scoped-files }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ inputs.php-version }}
+        tools: composer
+        extensions: curl, mbstring, xml, zip, intl, phar, json, opcache, fileinfo, tokenizer, dom
+
+    - name: Validate working directory
+      shell: bash
+      run: |
+        test -d "${{ inputs.working-directory }}" || {
+          echo "::error::Working directory '${{ inputs.working-directory }}' does not exist."
+          exit 1
+        }
+
+    - name: Validate scoper config
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        test -f "${{ inputs.scoper-config }}" || {
+          echo "::error::Scoper configuration '${{ inputs.scoper-config }}' not found."
+          exit 1
+        }
+
+    - name: Validate PHP version
+      shell: bash
+      run: |
+        PHP_VERSION=$(php -r 'echo PHP_VERSION_ID;')
+        if [ "$PHP_VERSION" -lt 80100 ]; then
+          echo "::error::PHP-Scoper requires PHP >= 8.1 (detected: $(php -r 'echo PHP_VERSION;'))"
+          exit 1
+        fi
+
+    - name: Composer install
+      if: ${{ inputs.composer-install == 'true' }}
+      uses: ramsey/composer-install@v3
+      with:
+        working-directory: ${{ inputs.working-directory }}
+        composer-options: ${{ inputs.composer-args }}
+
+    - name: Install php-scoper
+      shell: bash
+      run: |
+        SCOPER_TMP=$(mktemp -d)
+        echo "SCOPER_TMP=${SCOPER_TMP}" >> $GITHUB_ENV
+        composer --working-dir="${SCOPER_TMP}" init --name="temp/scoper" --no-interaction --quiet
+        composer --working-dir="${SCOPER_TMP}" require "humbug/php-scoper:${{ inputs.scoper-version }}" \
+          --no-interaction --prefer-dist
+        echo "✓ php-scoper installed at ${SCOPER_TMP}"
+
+    - name: Run PHP-Scoper
+      id: scoper
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: |
+        [ -n "${{ inputs.output-dir }}" ] || { echo "::error::output-dir must not be empty"; exit 1; }
+        [ "${{ inputs.output-dir }}" != "." ] || { echo "::error::output-dir cannot be the working directory itself"; exit 1; }
+
+        rm -rf "${{ inputs.output-dir }}"
+        "${SCOPER_TMP}/vendor/bin/php-scoper" add-prefix \
+          --config="${{ inputs.scoper-config }}" \
+          --output-dir="${{ inputs.output-dir }}" \
+          --force
+        echo "✓ PHP-Scoper completed successfully."
+
+        cd "${{ inputs.output-dir }}" || { echo "::error::Output directory '${{ inputs.output-dir }}' not found after scoping"; exit 1; }
+        SCOPED_PATH="$(pwd -P)"
+        FILE_COUNT=$(find "${{ inputs.output-dir }}" -type f -name '*.php' | wc -l)
+        echo "output-path=${SCOPED_PATH}" >> $GITHUB_OUTPUT
+        echo "scoped-files=${FILE_COUNT}" >> $GITHUB_OUTPUT
+
+        [ -n "${SCOPER_TMP}" ] && rm -rf "${SCOPER_TMP}"
