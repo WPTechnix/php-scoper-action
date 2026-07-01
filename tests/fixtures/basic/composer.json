@@ -1,5 +1,5 @@
 {
-    "name": "php-scoper-action/test-basic",
+    "name": "run-php-scoper/test-basic",
     "description": "Basic test fixture for PHP-Scoper Action integration tests",
     "autoload": {
         "psr-4": {

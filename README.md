@@ -45,14 +45,14 @@ You reference these in subsequent steps using `${{ steps.scoper.outputs.output-p
 ### Quick start
 
 ```yaml
-- uses: wptechnix/php-scoper-action@v1
+- uses: wptechnix/run-php-scoper@v1
   id: scoper
 ```
 
 ### Full configuration
 
 ```yaml
-- uses: wptechnix/php-scoper-action@v1
+- uses: wptechnix/run-php-scoper@v1
   id: scoper
   with:
     php-version: '8.2'
@@ -75,7 +75,7 @@ You reference these in subsequent steps using `${{ steps.scoper.outputs.output-p
 If your PHP project is not at the repository root but in a subdirectory, set `working-directory` so the action knows where to find `composer.json` and `scoper.inc.php`:
 
 ```yaml
-- uses: wptechnix/php-scoper-action@v1
+- uses: wptechnix/run-php-scoper@v1
   with:
     working-directory: 'packages/my-package'
     output-dir: 'scoped-build'
@@ -94,7 +94,7 @@ Your `composer.json` must be located inside `working-directory` — that is wher
 You can skip `composer install` if your `vendor/` directory already exists — for example, when it was restored from cache or installed in an earlier step:
 
 ```yaml
-- uses: wptechnix/php-scoper-action@v1
+- uses: wptechnix/run-php-scoper@v1
   with:
     composer-install: false
 ```
@@ -116,7 +116,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: wptechnix/php-scoper-action@v1
+      - uses: wptechnix/run-php-scoper@v1
         id: scoper
         with:
           php-version: '8.2'
