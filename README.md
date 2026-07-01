@@ -1,4 +1,4 @@
-# PHP-Scoper Action
+# Run PHP-Scoper Action
 
 Automatically scope PHP project dependencies using [humbug/php-scoper](https://github.com/humbug/php-scoper).
 
